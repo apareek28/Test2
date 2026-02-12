@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orchestrix | Enterprise Workflow Automation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              surface: '#F8FAFC',
+              border: '#E5E7EB',
+              brand: '#2563EB',
+              success: '#16A34A',
+            },
+            boxShadow: {
+              soft: '0 10px 26px rgba(15, 23, 42, 0.06)',
+              card: '0 4px 16px rgba(15, 23, 42, 0.06)',
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background: #f8fafc;
+      }
+
+      .canvas-grid {
+        background-image:
+          radial-gradient(circle, rgba(148, 163, 184, 0.23) 1px, transparent 1px),
+          linear-gradient(to right, rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+        background-size: 18px 18px, 90px 90px, 90px 90px;
+      }
+
+      .wf-node {
+        position: absolute;
+        width: 144px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+        padding: 12px;
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+        transition: box-shadow 0.28s ease, border-color 0.28s ease, transform 0.28s ease;
+        animation: nodeIn 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        cursor: grab;
+        user-select: none;
+      }
+
+      .wf-node:hover {
+        transform: translateY(-2px);
+      }
+
+      .wf-node.selected {
+        border-color: rgba(37, 99, 235, 0.45);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.14), 0 12px 26px rgba(15, 23, 42, 0.1);
+      }
+
+      .wf-node.active {
+        box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2), 0 12px 26px rgba(15, 23, 42, 0.1);
+      }
+
+      .wf-node .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: #16a34a;
+        opacity: 0.45;
+      }
+
+      .wf-node.active .status-dot {
+        animation: pulseDot 0.9s ease-in-out infinite;
+      }
+
+      .node-handle {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: #cbd5e1;
+        border: 2px solid #fff;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+      }
+
+      .node-handle.in {
+        left: -4px;
+        top: calc(50% - 4px);
+      }
+
+      .node-handle.out {
+        right: -4px;
+        top: calc(50% - 4px);
+      }
+
+      .wf-link {
+        fill: none;
+        stroke: #94a3b8;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-dasharray: 5 8;
+        opacity: 0.7;
+        animation: dashFlow 4.2s linear infinite;
+        transition: stroke 0.3s ease, opacity 0.3s ease;
+      }
+
+      .wf-link.active {
+        stroke: #2563eb;
+        opacity: 0.95;
+      }
+
+      .flow-token {
+        fill: #2563eb;
+        opacity: 0;
+        transition: opacity 0.28s ease;
+      }
+
+      .flow-token.running {
+        opacity: 0.9;
+      }
+
+      @keyframes dashFlow {
+        to {
+          stroke-dashoffset: -80;
+        }
+      }
+
+      @keyframes nodeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes pulseDot {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+        50% {
+          transform: scale(1.35);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body class="font-sans text-slate-800 antialiased">
+    <main>
+      <section class="px-6 pt-14 pb-20 md:px-10 lg:px-16">
+        <div class="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-14">
+          <div>
+            <div class="mb-6 inline-flex items-center rounded-full border border-border bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm">
+              Enterprise Workflow Automation Platform
+            </div>
+            <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+              Run mission-critical workflows with no-code speed and enterprise control.
+            </h1>
+            <p class="mt-6 max-w-xl text-lg leading-relaxed text-slate-600">
+              Orchestrate operations, IT, and cross-system processes from one secure automation layer. Build visually, enforce governance, and scale reliably across teams.
+            </p>
+            <div class="mt-9 flex flex-wrap gap-3">
+              <a href="#" class="rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-blue-700">
+                Request a Demo
+              </a>
+              <a href="#" class="rounded-lg border border-border bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                View Platform Tour
+              </a>
+            </div>
+            <div class="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-500">
+              <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-success"></span>99.99% workflow uptime</div>
+              <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-success"></span>SOC 2 Type II aligned</div>
+            </div>
+          </div>
+
+          <div class="overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
+            <div class="flex items-center justify-between border-b border-border px-4 py-3">
+              <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <span class="inline-block h-2.5 w-2.5 rounded-full bg-success"></span>
+                Workflow Builder • Production
+              </div>
+              <div class="flex gap-2">
+                <button id="zoom-out" class="rounded-md border border-border px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50">−</button>
+                <button id="zoom-in" class="rounded-md border border-border px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50">+</button>
+                <button id="reset-view" class="rounded-md border border-border px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50">Reset</button>
+              </div>
+            </div>
+
+            <div class="grid min-h-[440px] md:grid-cols-[1fr_220px]">
+              <div class="relative border-b border-border md:border-b-0 md:border-r">
+                <div class="flex items-center justify-between border-b border-border px-4 py-2.5 text-xs text-slate-500">
+                  <div class="flex items-center gap-4">
+                    <span class="font-semibold text-slate-600">Canvas</span>
+                    <span>Environment: Production</span>
+                  </div>
+                  <button id="add-node" class="rounded-md border border-border bg-white px-2.5 py-1 font-medium text-slate-600 hover:bg-slate-50">+ Add Step</button>
+                </div>
+
+                <div id="workflow-canvas" class="canvas-grid relative h-[390px] overflow-hidden"></div>
+              </div>
+
+              <aside class="bg-slate-50/70 px-3 py-3">
+                <p class="px-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Flow control</p>
+                <div class="mt-2 space-y-1.5">
+                  <button class="w-full rounded-lg border border-border bg-white px-3 py-2 text-left text-sm font-medium text-slate-700">Basic Trigger</button>
+                  <button class="w-full rounded-lg border border-border bg-white px-3 py-2 text-left text-sm font-medium text-slate-700">Set Variables</button>
+                  <button class="w-full rounded-lg border border-border bg-white px-3 py-2 text-left text-sm font-medium text-slate-700">Condition / Route</button>
+                  <button class="w-full rounded-lg border border-border bg-white px-3 py-2 text-left text-sm font-medium text-slate-700">Notification</button>
+                  <button class="w-full rounded-lg border border-border bg-white px-3 py-2 text-left text-sm font-medium text-slate-700">AI Action</button>
+                </div>
+                <div class="mt-4 rounded-lg border border-border bg-white p-3 text-xs text-slate-500">
+                  <p class="font-semibold text-slate-700">Selected step</p>
+                  <p id="selected-node-name" class="mt-1">Trigger</p>
+                  <p id="selected-node-sub" class="mt-0.5 text-slate-400">Webhook event</p>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="border-y border-border bg-white px-6 py-10 md:px-10 lg:px-16">
+        <div class="mx-auto max-w-7xl">
+          <p class="mb-6 text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Trusted by operations teams at</p>
+          <div class="grid grid-cols-2 gap-4 text-center text-sm font-semibold text-slate-400 sm:grid-cols-3 lg:grid-cols-6">
+            <div class="rounded-md border border-border bg-slate-50 py-3">NEXORA</div>
+            <div class="rounded-md border border-border bg-slate-50 py-3">AURELIX</div>
+            <div class="rounded-md border border-border bg-slate-50 py-3">STACKBANK</div>
+            <div class="rounded-md border border-border bg-slate-50 py-3">ARCLINE</div>
+            <div class="rounded-md border border-border bg-slate-50 py-3">POLARIS SYS</div>
+            <div class="rounded-md border border-border bg-slate-50 py-3">NOVASPHERE</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="px-6 py-20 md:px-10 lg:px-16">
+        <div class="mx-auto grid max-w-7xl gap-5 md:grid-cols-2">
+          <article class="rounded-xl border border-border bg-white p-7 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900">Visual Workflow Builder</h3>
+            <p class="mt-3 text-slate-600">Model real business flows with drag-and-connect steps, reusable sequences, and clear execution visibility.</p>
+          </article>
+          <article class="rounded-xl border border-border bg-white p-7 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900">Enterprise Integrations</h3>
+            <p class="mt-3 text-slate-600">Integrate ERP, ITSM, CRM, cloud data, and internal services using managed connectors and API triggers.</p>
+          </article>
+          <article class="rounded-xl border border-border bg-white p-7 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900">Role-Based Permissions</h3>
+            <p class="mt-3 text-slate-600">Apply least-privilege access, approvals, and environment boundaries for every workflow artifact.</p>
+          </article>
+          <article class="rounded-xl border border-border bg-white p-7 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900">AI-Powered Automation</h3>
+            <p class="mt-3 text-slate-600">Add governed AI actions for extraction, classification, and intelligent routing without sacrificing control.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="bg-white px-6 py-20 md:px-10 lg:px-16">
+        <div class="mx-auto max-w-7xl">
+          <h2 class="text-3xl font-bold tracking-tight text-slate-900">Platform capabilities</h2>
+          <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">Real-time Monitoring</p><p class="mt-2 text-sm text-slate-600">Trace every execution with actionable telemetry and health signals.</p></div>
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">Reusable Components</p><p class="mt-2 text-sm text-slate-600">Create standardized building blocks used across teams.</p></div>
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">Multi-Environment Deploys</p><p class="mt-2 text-sm text-slate-600">Promote safely from sandbox to production with guardrails.</p></div>
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">Exception Handling</p><p class="mt-2 text-sm text-slate-600">Automatically route failures and escalations by policy.</p></div>
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">API and Event Triggers</p><p class="mt-2 text-sm text-slate-600">Start workflows from webhooks, queues, and system events.</p></div>
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">Performance Insights</p><p class="mt-2 text-sm text-slate-600">Measure throughput, cycle time, and automation ROI.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="px-6 py-20 md:px-10 lg:px-16">
+        <div class="mx-auto max-w-7xl rounded-2xl border border-border bg-white p-8 shadow-sm lg:p-10">
+          <h2 class="text-3xl font-bold tracking-tight text-slate-900">Security and governance by design</h2>
+          <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-lg border border-border bg-slate-50 p-4"><p class="font-semibold">SOC 2</p><p class="mt-1 text-sm text-slate-600">Operational and security controls validated.</p></div>
+            <div class="rounded-lg border border-border bg-slate-50 p-4"><p class="font-semibold">Single Sign-On</p><p class="mt-1 text-sm text-slate-600">SAML and enterprise identity provider support.</p></div>
+            <div class="rounded-lg border border-border bg-slate-50 p-4"><p class="font-semibold">Encryption</p><p class="mt-1 text-sm text-slate-600">Data encrypted in transit and at rest by default.</p></div>
+            <div class="rounded-lg border border-border bg-slate-50 p-4"><p class="font-semibold">Compliance</p><p class="mt-1 text-sm text-slate-600">Policy controls, audit trails, and retention settings.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="px-6 pb-16 md:px-10 lg:px-16">
+        <div class="mx-auto max-w-7xl rounded-2xl border border-border bg-slate-50 p-10 text-center shadow-sm">
+          <h2 class="text-3xl font-bold tracking-tight text-slate-900">Scale automation confidently across your enterprise.</h2>
+          <p class="mx-auto mt-4 max-w-2xl text-slate-600">Unify operations and IT workflows on a secure platform designed for reliability, control, and measurable business outcomes.</p>
+          <a href="#" class="mt-8 inline-flex rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-blue-700">Talk to Sales</a>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const canvas = document.getElementById('workflow-canvas');
+      const selectedNodeName = document.getElementById('selected-node-name');
+      const selectedNodeSub = document.getElementById('selected-node-sub');
+      const zoomIn = document.getElementById('zoom-in');
+      const zoomOut = document.getElementById('zoom-out');
+      const resetView = document.getElementById('reset-view');
+      const addNodeBtn = document.getElementById('add-node');
+
+      const state = {
+        scale: 1,
+        selectedId: 'trigger',
+        nodes: [
+          { id: 'trigger', label: 'Webhook', sub: 'Inbound event', x: 36, y: 44, icon: '⚡', color: 'bg-rose-50' },
+          { id: 'validate', label: 'Validate Data', sub: 'Rules + schema', x: 228, y: 42, icon: '✓', color: 'bg-slate-50' },
+          { id: 'ai', label: 'AI Process', sub: 'Classify + enrich', x: 420, y: 42, icon: '◌', color: 'bg-indigo-50' },
+          { id: 'route', label: 'Route', sub: 'Conditional branch', x: 420, y: 220, icon: '⇢', color: 'bg-violet-50' },
+          { id: 'notify', label: 'Notify', sub: 'Slack + email', x: 228, y: 220, icon: '✉', color: 'bg-sky-50' },
+          { id: 'store', label: 'Store', sub: 'Database write', x: 36, y: 220, icon: '⛁', color: 'bg-emerald-50' },
+        ],
+        links: [
+          { from: 'trigger', to: 'validate' },
+          { from: 'validate', to: 'ai' },
+          { from: 'ai', to: 'route' },
+          { from: 'route', to: 'notify' },
+          { from: 'notify', to: 'store' },
+        ],
+      };
+
+      const map = new Map();
+      const linkEls = [];
+
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 760 390');
+      svg.className = 'absolute inset-0 h-full w-full pointer-events-none';
+
+      const token = document.createElementNS(svgNS, 'circle');
+      token.setAttribute('r', '4.2');
+      token.classList.add('flow-token');
+
+      function getNode(id) {
+        return state.nodes.find((n) => n.id === id);
+      }
+
+      function updateInspector(id) {
+        const n = getNode(id);
+        if (!n) return;
+        selectedNodeName.textContent = n.label;
+        selectedNodeSub.textContent = n.sub;
+      }
+
+      function pathFor(link) {
+        const a = getNode(link.from);
+        const b = getNode(link.to);
+        if (!a || !b) return '';
+
+        const sx = a.x + 144;
+        const sy = a.y + 40;
+        const tx = b.x;
+        const ty = b.y + 40;
+        const midX = sx + (tx - sx) * 0.5;
+
+        return `M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}`;
+      }
+
+      function renderLinks() {
+        svg.innerHTML = '';
+        linkEls.length = 0;
+
+        state.links.forEach((link, idx) => {
+          const p = document.createElementNS(svgNS, 'path');
+          p.classList.add('wf-link');
+          p.style.animationDelay = `${idx * 0.13}s`;
+          p.setAttribute('d', pathFor(link));
+          svg.appendChild(p);
+          linkEls.push(p);
+        });
+
+        svg.appendChild(token);
+      }
+
+      function setSelection(id) {
+        state.selectedId = id;
+        [...canvas.querySelectorAll('.wf-node')].forEach((el) => {
+          el.classList.toggle('selected', el.dataset.id === id);
+        });
+        updateInspector(id);
+      }
+
+      function makeNodeEl(node, idx) {
+        const el = document.createElement('div');
+        el.className = `wf-node ${node.color}`;
+        el.dataset.id = node.id;
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+        el.style.animationDelay = `${idx * 0.2}s`;
+        el.innerHTML = `
+          <span class="node-handle in"></span>
+          <span class="node-handle out"></span>
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="flex h-6 w-6 items-center justify-center rounded-md bg-white text-xs text-slate-600 shadow-sm">${node.icon}</span>
+              <p class="text-xs font-semibold text-slate-800">${node.label}</p>
+            </div>
+            <span class="status-dot"></span>
+          </div>
+          <p class="mt-2 text-[11px] text-slate-500">${node.sub}</p>
+        `;
+
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setSelection(node.id);
+        });
+
+        el.addEventListener('pointerdown', (ev) => {
+          if (ev.button !== 0) return;
+          ev.preventDefault();
+          el.setPointerCapture(ev.pointerId);
+          setSelection(node.id);
+
+          const startX = ev.clientX;
+          const startY = ev.clientY;
+          const originX = node.x;
+          const originY = node.y;
+
+          const onMove = (moveEv) => {
+            const dx = (moveEv.clientX - startX) / state.scale;
+            const dy = (moveEv.clientY - startY) / state.scale;
+            node.x = Math.max(8, Math.min(608, originX + dx));
+            node.y = Math.max(8, Math.min(320, originY + dy));
+            el.style.left = `${node.x}px`;
+            el.style.top = `${node.y}px`;
+            state.links.forEach((link, i) => linkEls[i].setAttribute('d', pathFor(link)));
+          };
+
+          const onUp = () => {
+            el.releasePointerCapture(ev.pointerId);
+            el.removeEventListener('pointermove', onMove);
+            el.removeEventListener('pointerup', onUp);
+          };
+
+          el.addEventListener('pointermove', onMove);
+          el.addEventListener('pointerup', onUp);
+        });
+
+        map.set(node.id, el);
+        canvas.appendChild(el);
+      }
+
+      function renderNodes() {
+        map.clear();
+        [...canvas.querySelectorAll('.wf-node')].forEach((n) => n.remove());
+        state.nodes.forEach((node, idx) => makeNodeEl(node, idx));
+        setSelection(state.selectedId);
+      }
+
+      function animateToken(path) {
+        const duration = 720;
+        const start = performance.now();
+
+        const step = (time) => {
+          const t = Math.min((time - start) / duration, 1);
+          const point = path.getPointAtLength(path.getTotalLength() * t);
+          token.setAttribute('cx', point.x);
+          token.setAttribute('cy', point.y);
+          if (t < 1) requestAnimationFrame(step);
+        };
+
+        requestAnimationFrame(step);
+      }
+
+      let activeStep = 0;
+      function playSequence() {
+        [...map.values()].forEach((el) => el.classList.remove('active'));
+        linkEls.forEach((link) => link.classList.remove('active'));
+
+        const link = linkEls[activeStep % linkEls.length];
+        const from = state.links[activeStep % state.links.length].from;
+
+        const activeNode = map.get(from);
+        if (activeNode) activeNode.classList.add('active');
+        if (link) {
+          link.classList.add('active');
+          token.classList.add('running');
+          animateToken(link);
+        }
+
+        activeStep = (activeStep + 1) % state.links.length;
+      }
+
+      function setScale(v) {
+        state.scale = Math.max(0.8, Math.min(1.18, v));
+        canvas.style.transform = `scale(${state.scale})`;
+        canvas.style.transformOrigin = 'top left';
+      }
+
+      zoomIn.addEventListener('click', () => setScale(state.scale + 0.06));
+      zoomOut.addEventListener('click', () => setScale(state.scale - 0.06));
+      resetView.addEventListener('click', () => setScale(1));
+
+      addNodeBtn.addEventListener('click', () => {
+        const id = `step-${Date.now().toString().slice(-4)}`;
+        const node = {
+          id,
+          label: 'New Step',
+          sub: 'Custom action',
+          x: 520,
+          y: 140,
+          icon: '+',
+          color: 'bg-slate-50',
+        };
+        state.nodes.push(node);
+        state.links.push({ from: state.selectedId, to: id });
+        renderLinks();
+        renderNodes();
+        setSelection(id);
+      });
+
+      canvas.addEventListener('click', () => setSelection(state.selectedId));
+
+      canvas.appendChild(svg);
+      renderLinks();
+      renderNodes();
+      updateInspector(state.selectedId);
+
+      setTimeout(() => {
+        playSequence();
+        setInterval(playSequence, 1100);
+      }, 1200);
+    </script>
+  </body>
+</html>
