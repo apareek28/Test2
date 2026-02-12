@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orchestrix | Enterprise Workflow Automation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              surface: '#F8FAFC',
+              border: '#E5E7EB',
+              brand: '#2563EB',
+              success: '#16A34A',
+            },
+            boxShadow: {
+              soft: '0 8px 30px rgba(15, 23, 42, 0.06)',
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background: #f8fafc;
+      }
+
+      .grid-bg {
+        background-image:
+          linear-gradient(to right, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+        background-size: 28px 28px;
+      }
+
+      .node {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+        animation: nodeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+
+      .node.active {
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15), 0 8px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      .node .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: #16a34a;
+        opacity: 0.35;
+      }
+
+      .node.active .status-dot {
+        animation: pulseDot 0.8s ease-in-out infinite;
+      }
+
+      .flow-path {
+        stroke-dasharray: 6 8;
+        stroke-linecap: round;
+        animation: dashFlow 4.5s linear infinite;
+        opacity: 0.75;
+      }
+
+      .flow-dot {
+        fill: #2563eb;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      .flow-dot.running {
+        opacity: 0.8;
+      }
+
+      @keyframes dashFlow {
+        to {
+          stroke-dashoffset: -84;
+        }
+      }
+
+      @keyframes nodeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes pulseDot {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+        50% {
+          transform: scale(1.35);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body class="font-sans text-slate-800 antialiased">
+    <main>
+      <section class="px-6 pt-14 pb-20 md:px-10 lg:px-16">
+        <div class="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <div class="mb-6 inline-flex items-center rounded-full border border-border bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm">
+              Enterprise Workflow Automation Platform
+            </div>
+            <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+              Automate critical operations with secure, scalable workflows.
+            </h1>
+            <p class="mt-6 max-w-xl text-lg leading-relaxed text-slate-600">
+              Build and run no-code and low-code automations across systems, teams, and environments. Reduce manual work, improve reliability, and govern every workflow with confidence.
+            </p>
+            <div class="mt-9 flex flex-wrap gap-3">
+              <a href="#" class="rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-blue-700">
+                Request a Demo
+              </a>
+              <a href="#" class="rounded-lg border border-border bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                View Platform Tour
+              </a>
+            </div>
+            <div class="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-500">
+              <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-success"></span>99.99% workflow uptime</div>
+              <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-success"></span>SOC 2 Type II ready</div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white p-4 shadow-soft sm:p-6">
+            <div class="mb-4 flex items-center justify-between">
+              <p class="text-sm font-semibold text-slate-700">Workflow Builder</p>
+              <p class="text-xs text-slate-400">Production • Active</p>
+            </div>
+            <div id="workflow-canvas" class="grid-bg relative h-[360px] overflow-hidden rounded-xl border border-border bg-slate-50/70 p-4 sm:h-[390px]"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="border-y border-border bg-white px-6 py-10 md:px-10 lg:px-16">
+        <div class="mx-auto max-w-7xl">
+          <p class="mb-6 text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Trusted by operations teams at</p>
+          <div class="grid grid-cols-2 gap-4 text-center text-sm font-semibold text-slate-400 sm:grid-cols-3 lg:grid-cols-6">
+            <div class="rounded-md border border-border bg-slate-50 py-3">NEXORA</div>
+            <div class="rounded-md border border-border bg-slate-50 py-3">AURELIX</div>
+            <div class="rounded-md border border-border bg-slate-50 py-3">STACKBANK</div>
+            <div class="rounded-md border border-border bg-slate-50 py-3">ARCLINE</div>
+            <div class="rounded-md border border-border bg-slate-50 py-3">POLARIS SYS</div>
+            <div class="rounded-md border border-border bg-slate-50 py-3">NOVASPHERE</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="px-6 py-20 md:px-10 lg:px-16">
+        <div class="mx-auto grid max-w-7xl gap-5 md:grid-cols-2">
+          <article class="rounded-xl border border-border bg-white p-7 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900">Visual Workflow Builder</h3>
+            <p class="mt-3 text-slate-600">Design enterprise-grade processes with reusable templates, conditional logic, and version control built in.</p>
+          </article>
+          <article class="rounded-xl border border-border bg-white p-7 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900">Enterprise Integrations</h3>
+            <p class="mt-3 text-slate-600">Connect ERP, ITSM, CRM, and data systems through managed connectors and API-first orchestration.</p>
+          </article>
+          <article class="rounded-xl border border-border bg-white p-7 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900">Role-Based Permissions</h3>
+            <p class="mt-3 text-slate-600">Control access by team, environment, and asset with clear ownership and approval workflows.</p>
+          </article>
+          <article class="rounded-xl border border-border bg-white p-7 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900">AI-Powered Automation</h3>
+            <p class="mt-3 text-slate-600">Apply AI steps for classification, extraction, and decision support while preserving governance controls.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="bg-white px-6 py-20 md:px-10 lg:px-16">
+        <div class="mx-auto max-w-7xl">
+          <h2 class="text-3xl font-bold tracking-tight text-slate-900">Platform capabilities</h2>
+          <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">Real-time Monitoring</p><p class="mt-2 text-sm text-slate-600">Track every run with actionable telemetry.</p></div>
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">Reusable Components</p><p class="mt-2 text-sm text-slate-600">Standardize process design at scale.</p></div>
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">Multi-Environment Deploys</p><p class="mt-2 text-sm text-slate-600">Promote safely from dev to production.</p></div>
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">Exception Handling</p><p class="mt-2 text-sm text-slate-600">Route failures with clear escalation logic.</p></div>
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">API and Event Triggers</p><p class="mt-2 text-sm text-slate-600">Launch workflows from any system signal.</p></div>
+            <div class="rounded-lg border border-border p-5"><p class="font-semibold">Performance Insights</p><p class="mt-2 text-sm text-slate-600">Measure cycle time and ROI continuously.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="px-6 py-20 md:px-10 lg:px-16">
+        <div class="mx-auto max-w-7xl rounded-2xl border border-border bg-white p-8 shadow-sm lg:p-10">
+          <h2 class="text-3xl font-bold tracking-tight text-slate-900">Security and governance by design</h2>
+          <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-lg border border-border bg-slate-50 p-4"><p class="font-semibold">SOC 2</p><p class="mt-1 text-sm text-slate-600">Operational and security controls validated.</p></div>
+            <div class="rounded-lg border border-border bg-slate-50 p-4"><p class="font-semibold">Single Sign-On</p><p class="mt-1 text-sm text-slate-600">SAML and enterprise identity support.</p></div>
+            <div class="rounded-lg border border-border bg-slate-50 p-4"><p class="font-semibold">Encryption</p><p class="mt-1 text-sm text-slate-600">Data encrypted in transit and at rest.</p></div>
+            <div class="rounded-lg border border-border bg-slate-50 p-4"><p class="font-semibold">Compliance</p><p class="mt-1 text-sm text-slate-600">Configurable controls and audit policies.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="px-6 pb-16 md:px-10 lg:px-16">
+        <div class="mx-auto max-w-7xl rounded-2xl border border-border bg-slate-50 p-10 text-center shadow-sm">
+          <h2 class="text-3xl font-bold tracking-tight text-slate-900">Modernize operations with automation that scales.</h2>
+          <p class="mx-auto mt-4 max-w-2xl text-slate-600">Give operations and IT teams a trusted platform to automate complex workflows, enforce governance, and accelerate outcomes.</p>
+          <a href="#" class="mt-8 inline-flex rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-blue-700">Talk to Sales</a>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const nodes = [
+        { id: 'trigger', label: 'Trigger', sub: 'Webhook Event', x: 20, y: 34 },
+        { id: 'validate', label: 'Validate Data', sub: 'Schema + Rules', x: 180, y: 34 },
+        { id: 'ai', label: 'AI Process', sub: 'Classification', x: 340, y: 34 },
+        { id: 'route', label: 'Route', sub: 'Conditional Branch', x: 340, y: 170 },
+        { id: 'notify', label: 'Notify', sub: 'Slack + Email', x: 180, y: 170 },
+        { id: 'store', label: 'Store', sub: 'Database Write', x: 20, y: 170 },
+      ];
+
+      const links = [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 4],
+        [4, 5],
+      ];
+
+      const canvas = document.getElementById('workflow-canvas');
+      const nodeEls = [];
+
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 500 320');
+      svg.className = 'absolute inset-0 h-full w-full';
+
+      const dot = document.createElementNS(svgNS, 'circle');
+      dot.setAttribute('r', '4');
+      dot.classList.add('flow-dot');
+
+      const drawPath = (from, to, idx) => {
+        const path = document.createElementNS(svgNS, 'path');
+        const sx = from.x + 122;
+        const sy = from.y + 38;
+        const tx = to.x;
+        const ty = to.y + 38;
+        const cx1 = sx + (tx - sx) * 0.35;
+        const cy1 = sy;
+        const cx2 = sx + (tx - sx) * 0.65;
+        const cy2 = ty;
+        path.setAttribute('d', `M ${sx} ${sy} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${tx} ${ty}`);
+        path.setAttribute('stroke', '#94A3B8');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('fill', 'none');
+        path.classList.add('flow-path');
+        path.style.animationDelay = `${idx * 0.18}s`;
+        svg.appendChild(path);
+        return path;
+      };
+
+      const paths = links.map(([a, b], idx) => drawPath(nodes[a], nodes[b], idx));
+      svg.appendChild(dot);
+      canvas.appendChild(svg);
+
+      nodes.forEach((node, idx) => {
+        const el = document.createElement('div');
+        el.className = 'node absolute w-[122px] rounded-lg border border-border bg-white p-3 shadow-sm';
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+        el.style.animationDelay = `${idx * 0.26}s`;
+        el.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <p class="text-xs font-semibold text-slate-800">${node.label}</p>
+            <span class="status-dot"></span>
+          </div>
+          <p class="mt-1 text-[11px] text-slate-500">${node.sub}</p>
+        `;
+        canvas.appendChild(el);
+        nodeEls.push(el);
+      });
+
+      let step = 0;
+      const sequenceLength = nodes.length;
+
+      const animateFlowDot = (path) => {
+        const duration = 780;
+        const start = performance.now();
+
+        const run = (time) => {
+          const t = Math.min((time - start) / duration, 1);
+          const point = path.getPointAtLength(path.getTotalLength() * t);
+          dot.setAttribute('cx', point.x);
+          dot.setAttribute('cy', point.y);
+
+          if (t < 1) {
+            requestAnimationFrame(run);
+          }
+        };
+
+        requestAnimationFrame(run);
+      };
+
+      const tick = () => {
+        nodeEls.forEach((n) => n.classList.remove('active'));
+        nodeEls[step].classList.add('active');
+
+        if (step < paths.length) {
+          dot.classList.add('running');
+          animateFlowDot(paths[step]);
+        }
+
+        if (step >= paths.length) {
+          setTimeout(() => dot.classList.remove('running'), 500);
+        }
+
+        step = (step + 1) % sequenceLength;
+      };
+
+      setTimeout(() => {
+        tick();
+        setInterval(tick, 1150);
+      }, 1800);
+    </script>
+  </body>
+</html>
